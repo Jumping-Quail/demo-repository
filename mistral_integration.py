@@ -21,8 +21,25 @@ class MistralRepositoryAnalyzer:
         Args:
             api_key: Mistral AI API key (optional for demo)
         """
-        self.api_key = api_key
+        # Try to get API key from environment if not provided
+        self.api_key = api_key or os.getenv('MISTRAL_API_KEY') or os.getenv('MISTRALAI_API_KEY')
         self.repo_path = Path(".")
+        self.client = None
+        
+        # Initialize Mistral client if API key is provided
+        if self.api_key:
+            try:
+                from mistralai.client import MistralClient
+                self.client = MistralClient(api_key=self.api_key)
+                print("✅ Mistral AI client initialized successfully")
+            except ImportError:
+                print("⚠️  Mistral AI package not found. Install with: pip install mistralai")
+                self.client = None
+            except Exception as e:
+                print(f"⚠️  Failed to initialize Mistral client: {e}")
+                self.client = None
+        else:
+            print("ℹ️  Running in simulation mode (no API key provided)")
         
     def prepare_context_for_mistral(self) -> str:
         """
@@ -190,9 +207,14 @@ Please assess:
     
     def simulate_mistral_analysis(self, prompts: List[Dict[str, str]]) -> Dict[str, Any]:
         """
-        Simulate Mistral AI analysis responses
-        (In real implementation, this would call Mistral API)
+        Perform Mistral AI analysis - uses real API if available, otherwise simulates
         """
+        
+        # If we have a real Mistral client, use it
+        if self.client:
+            return self._call_real_mistral_api(prompts)
+        
+        # Otherwise, use simulation
         
         # Simulated responses based on actual repository analysis
         responses = {

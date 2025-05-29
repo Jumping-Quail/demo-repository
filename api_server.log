@@ -1,0 +1,18 @@
+Starting Mistral AI Analysis API Server...
+Available endpoints:
+  GET  /         - API information
+  GET  /health   - Health check
+  POST /analyze  - Run analysis
+  GET  /results  - Get results
+  GET  /dashboard- Dashboard info
+  GET  /test     - Test endpoint
+
+Server starting on http://localhost:3000
+ * Serving Flask app 'api_server'
+ * Debug mode: on
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on http://localhost:3000
+Press CTRL+C to quit
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 497-648-753
