@@ -1,0 +1,20 @@
+Starting Mistral AI Analysis API Server...
+Available endpoints:
+  GET  /         - API information
+  GET  /health   - Health check
+  POST /analyze  - Run analysis
+  GET  /results  - Get results
+  GET  /dashboard- Dashboard info
+  GET  /test     - Test endpoint
+
+Server starting on http://0.0.0.0:3000
+ * Serving Flask app 'api_server'
+ * Debug mode: off
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:3000
+ * Running on http://10.2.122.145:3000
+Press CTRL+C to quit
+127.0.0.1 - - [29/May/2025 14:09:48] "GET /mistral-analyze HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2025 14:09:57] "POST /mistral-test HTTP/1.1" 200 -
+127.0.0.1 - - [29/May/2025 14:11:24] "POST /mistral-test HTTP/1.1" 200 -

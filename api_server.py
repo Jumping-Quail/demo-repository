@@ -1,0 +1,16 @@
+if __name__ == '__main__':
+    print("Starting AI Repository Analysis API Server...")
+    print("Available endpoints:")
+    print("  GET  /         - API information")
+    print("  GET  /health   - Health check")
+    print("  POST /analyze  - Run Mistral analysis")
+    print("  POST /openai-analyze - Run OpenAI analysis")
+    print("  POST /openhands-analyze - Run OpenHands analysis")
+    print("  POST /compare-analysis - Compare analyses")
+    print("  POST /rag-query - Query the RAG system")
+    print("  GET  /results  - Get results")
+    print("  GET  /dashboard- Dashboard info")
+    print("  GET  /test     - Test endpoint")
+    print("\nServer starting on http://0.0.0.0:3000")
+    
+    app.run(host='0.0.0.0', port=3000, debug=False)
