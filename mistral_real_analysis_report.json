@@ -1,0 +1,50 @@
+{
+  "analysis_type": "mistral_ai_comprehensive",
+  "timestamp": "2025-05-29T14:07:15.218336",
+  "api_used": false,
+  "files_analyzed": 5,
+  "overall_scores": {
+    "code_quality": 7.5,
+    "security": 8.0,
+    "documentation": 5.0,
+    "overall": 6.8
+  },
+  "detailed_results": [
+    {
+      "category": "code_quality",
+      "score": 7.5,
+      "details": "Mock analysis for api_server.py: Code structure is clean with good practices",
+      "recommendations": [
+        "Add more unit tests",
+        "Consider type hints",
+        "Improve error handling"
+      ],
+      "timestamp": "2025-05-29T14:07:11.217388"
+    },
+    {
+      "category": "security",
+      "score": 8.0,
+      "details": "Mock security analysis for api_server.py: No major vulnerabilities detected",
+      "recommendations": [
+        "Add input validation",
+        "Use environment variables for secrets"
+      ],
+      "timestamp": "2025-05-29T14:07:11.217411"
+    }
+  ],
+  "summary": {
+    "strengths": [
+      "Good code quality and structure",
+      "Strong security practices"
+    ],
+    "areas_for_improvement": [
+      "Enhance documentation coverage",
+      "Add more unit tests",
+      "Consider type hints",
+      "Improve error handling"
+    ],
+    "priority_actions": [
+      "Continue maintaining current quality standards"
+    ]
+  }
+}

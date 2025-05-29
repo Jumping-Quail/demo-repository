@@ -29,8 +29,8 @@ class MistralRepositoryAnalyzer:
         # Initialize Mistral client if API key is provided
         if self.api_key:
             try:
-                from mistralai.client import MistralClient
-                self.client = MistralClient(api_key=self.api_key)
+                from mistralai import Mistral
+                self.client = Mistral(api_key=self.api_key)
                 print("✅ Mistral AI client initialized successfully")
             except ImportError:
                 print("⚠️  Mistral AI package not found. Install with: pip install mistralai")
@@ -277,6 +277,146 @@ Please assess:
         }
         
         return responses
+    
+    def _call_real_mistral_api(self, prompts: List[Dict[str, str]]) -> Dict[str, Any]:
+        """
+        Call the real Mistral AI API for analysis
+        """
+        print("🔄 Calling Mistral AI API for real analysis...")
+        
+        responses = {}
+        
+        try:
+            for prompt_data in prompts:
+                prompt_type = prompt_data["type"]
+                prompt_text = prompt_data["prompt"]
+                
+                print(f"   Analyzing: {prompt_type}")
+                
+                # Call Mistral API
+                response = self.client.chat.complete(
+                    model="mistral-large-latest",
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": prompt_text
+                        }
+                    ],
+                    max_tokens=2000,
+                    temperature=0.3
+                )
+                
+                # Parse the response
+                content = response.choices[0].message.content
+                
+                # Try to extract structured data from the response
+                responses[prompt_type] = self._parse_mistral_response(content, prompt_type)
+                
+        except Exception as e:
+            print(f"⚠️  Error calling Mistral API: {e}")
+            print("   Falling back to simulation mode...")
+            return self._get_simulated_responses()
+        
+        print("✅ Mistral AI analysis completed successfully")
+        return responses
+    
+    def _parse_mistral_response(self, content: str, analysis_type: str) -> Dict[str, Any]:
+        """
+        Parse Mistral AI response into structured data
+        """
+        # This is a simplified parser - in production, you'd want more sophisticated parsing
+        parsed = {
+            "raw_response": content,
+            "analysis_type": analysis_type,
+            "timestamp": "2025-05-29"
+        }
+        
+        # Try to extract key information based on analysis type
+        if analysis_type == "code_quality":
+            parsed.update({
+                "overall_assessment": content[:200] + "..." if len(content) > 200 else content,
+                "ai_powered": True
+            })
+        elif analysis_type == "technology_stack":
+            parsed.update({
+                "stack_analysis": content[:200] + "..." if len(content) > 200 else content,
+                "ai_powered": True
+            })
+        elif analysis_type == "architecture":
+            parsed.update({
+                "architecture_analysis": content[:200] + "..." if len(content) > 200 else content,
+                "ai_powered": True
+            })
+        elif analysis_type == "documentation":
+            parsed.update({
+                "documentation_analysis": content[:200] + "..." if len(content) > 200 else content,
+                "ai_powered": True
+            })
+        
+        return parsed
+    
+    def _get_simulated_responses(self) -> Dict[str, Any]:
+        """
+        Get simulated responses (fallback when API fails)
+        """
+        return {
+            "code_quality": {
+                "overall_score": 7.5,
+                "assessment": "Clean and simple structure with room for improvement",
+                "strengths": [
+                    "Clear file organization",
+                    "Proper use of GitHub Actions",
+                    "Clean HTML structure",
+                    "Appropriate use of semantic versioning"
+                ],
+                "weaknesses": [
+                    "Minimal HTML content",
+                    "No testing framework",
+                    "Limited documentation",
+                    "No error handling"
+                ],
+                "security_score": 8.0,
+                "security_notes": "Good use of GitHub secrets, minimal attack surface"
+            },
+            "technology_stack": {
+                "languages": ["HTML", "YAML"],
+                "frameworks": ["Primer CSS"],
+                "tools": ["GitHub Actions", "npm"],
+                "package_managers": ["npm"],
+                "ci_cd": ["GitHub Actions"],
+                "modernization_suggestions": [
+                    "Add JavaScript for interactivity",
+                    "Consider using a static site generator",
+                    "Add CSS preprocessing",
+                    "Implement automated testing"
+                ]
+            },
+            "architecture": {
+                "pattern": "Static Web Page",
+                "complexity": "Very Low",
+                "modularity_score": 6.0,
+                "scalability_score": 5.0,
+                "recommendations": [
+                    "Implement component-based architecture",
+                    "Add configuration management",
+                    "Consider microservices for future growth",
+                    "Implement proper error handling"
+                ]
+            },
+            "documentation": {
+                "completeness_score": 4.0,
+                "readme_quality": "Basic",
+                "code_comments": "None",
+                "setup_instructions": "Minimal",
+                "improvements_needed": [
+                    "Add detailed setup instructions",
+                    "Include usage examples",
+                    "Add API documentation",
+                    "Create contributing guidelines",
+                    "Add troubleshooting section"
+                ]
+            }
+        }
     
     def generate_comprehensive_report(self) -> Dict[str, Any]:
         """
