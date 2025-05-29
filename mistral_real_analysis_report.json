@@ -1,6 +1,6 @@
 {
   "analysis_type": "mistral_ai_comprehensive",
-  "timestamp": "2025-05-29T14:07:15.218336",
+  "timestamp": "2025-05-29T09:37:58.883374",
   "api_used": false,
   "files_analyzed": 5,
   "overall_scores": {
@@ -13,23 +13,23 @@
     {
       "category": "code_quality",
       "score": 7.5,
-      "details": "Mock analysis for api_server.py: Code structure is clean with good practices",
+      "details": "Mock analysis for test_mistral_api.py: Code structure is clean with good practices",
       "recommendations": [
         "Add more unit tests",
         "Consider type hints",
         "Improve error handling"
       ],
-      "timestamp": "2025-05-29T14:07:11.217388"
+      "timestamp": "2025-05-29T09:37:55.868620"
     },
     {
       "category": "security",
       "score": 8.0,
-      "details": "Mock security analysis for api_server.py: No major vulnerabilities detected",
+      "details": "Mock security analysis for test_mistral_api.py: No major vulnerabilities detected",
       "recommendations": [
         "Add input validation",
         "Use environment variables for secrets"
       ],
-      "timestamp": "2025-05-29T14:07:11.217411"
+      "timestamp": "2025-05-29T09:37:55.868935"
     }
   ],
   "summary": {
