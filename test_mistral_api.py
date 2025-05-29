@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
 Test script for Mistral AI API integration
 This script tests both simulation mode and real API mode

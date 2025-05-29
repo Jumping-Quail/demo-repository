@@ -1,6 +1,6 @@
-# Demo Repository - Mistral AI Analysis
+# Demo Repository - AI-Powered Code Analysis
 
-This repository has been enhanced with comprehensive AI-powered analysis using Mistral AI concepts and methodologies.
+This repository has been enhanced with comprehensive AI-powered analysis using both Mistral AI and OpenAI, with comparative analysis capabilities.
 
 ## 🤖 AI Analysis Overview
 
@@ -11,6 +11,8 @@ This repository has been analyzed using advanced AI techniques to provide insigh
 - Architecture analysis
 - Documentation quality
 - Actionable recommendations
+
+The analysis is performed using both Mistral AI and OpenAI, allowing for comparative analysis and higher confidence in the results.
 
 ## 📊 Analysis Results
 
@@ -100,65 +102,106 @@ This repository now includes comprehensive analysis tools:
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Python 3.7+
+- Python 3.9+
 - pip (Python package manager)
+- OpenAI API key (for OpenAI analysis)
+- Mistral API key (for Mistral analysis)
 
 ### Installation
 ```bash
 # Clone the repository
-git clone https://github.com/Jumping-Quail/demo-repository.git
+git clone https://github.com/yourusername/demo-repository.git
 cd demo-repository
 
 # Install Python dependencies
-pip install mistralai
+pip install -r requirements.txt
 
-# Install npm dependencies (optional)
-npm install
+# Set up environment variables
+cp .env.example .env
+# Edit .env to add your API keys
 ```
 
 ### Running the Analysis
 
-1. **Basic Analysis:**
+1. **Basic Mistral Analysis:**
    ```bash
    python analyze_repo.py
    ```
 
-2. **Advanced Mistral AI Analysis:**
+2. **OpenAI Analysis:**
    ```bash
-   python mistral_integration.py
+   python analyze_openai.py
    ```
 
-3. **View Interactive Dashboard:**
+3. **Comparative Analysis:**
    ```bash
-   python serve_dashboard.py
+   python compare_analysis.py
    ```
-   Then open: http://localhost:12000/analysis_dashboard.html
+
+4. **Initialize RAG System:**
+   ```bash
+   python initialize_rag.py
+   ```
+
+5. **Start API Server:**
+   ```bash
+   python api_server.py
+   ```
+   Then access the API at http://localhost:3000
+
+6. **View Interactive Dashboard:**
+   Open `analysis_dashboard.html` in your browser
 
 ## 📊 Analysis Reports
 
 The analysis generates several output files:
 
-- `analysis_report.json` - Basic analysis results
-- `mistral_analysis_report.json` - Comprehensive AI analysis
-- `analysis_dashboard.html` - Interactive visualization
+- `analysis_report.json` - Mistral AI analysis results
+- `openai_analysis_report.json` - OpenAI analysis results
+- `comparison_report.json` - Comparative analysis between Mistral and OpenAI
+- `visualizations/` - Interactive visualizations of the comparison
+
+## 🔍 RAG System
+
+The repository includes a Retrieval-Augmented Generation (RAG) system that allows you to ask questions about the codebase and get AI-powered answers based on the documentation and analysis results.
+
+### Using the RAG System
+
+1. Initialize the RAG system:
+   ```bash
+   python initialize_rag.py
+   ```
+
+2. Start the API server:
+   ```bash
+   python api_server.py
+   ```
+
+3. Query the RAG system:
+   ```bash
+   curl -X POST http://localhost:3000/rag-query \
+     -H "Content-Type: application/json" \
+     -d '{"question": "What are the key strengths of this codebase?"}'
+   ```
 
 ## 🔧 Customization
 
-### Adding Your Mistral AI API Key
+### Adding Your API Keys
 
-To use real Mistral AI analysis (not simulated), add your API key:
+To use the AI analysis features, add your API keys to the `.env` file:
 
-```python
-# In mistral_integration.py
-analyzer = MistralRepositoryAnalyzer(api_key="your-mistral-api-key")
+```bash
+# In .env
+MISTRAL_API_KEY=your-mistral-api-key
+OPENAI_API_KEY=your-openai-api-key
 ```
 
 ### Extending the Analysis
 
 The analysis framework is modular and can be extended:
 
-1. Add new analysis types in `generate_analysis_prompts()`
-2. Implement custom metrics in the analyzer classes
+1. Add new analysis types in the analyzer classes
+2. Implement custom metrics in the comparison module
 3. Enhance the dashboard with additional visualizations
 
 ## 🤝 Contributing

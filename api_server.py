@@ -1,48 +1,59 @@
-@app.route('/compare-analysis', methods=['POST', 'GET'])
-@limiter.limit("10 per hour")
-def compare_analysis():
-    """Compare Mistral and OpenAI analyses"""
-    try:
-        logger.info("Starting analysis comparison")
-        # Run the comparison script
-        result = subprocess.run([
-            sys.executable, 'compare_analysis.py'
-        ], capture_output=True, text=True, cwd=os.path.dirname(os.path.abspath(__file__)))
-        
-        if result.returncode == 0:
-            # Try to load the generated comparison report
-            try:
-                with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'comparison_report.json'), 'r') as f:
-                    comparison_data = json.load(f)
-                logger.info("Analysis comparison completed successfully")
-                return jsonify({
-                    "status": "success",
-                    "message": "Analysis comparison completed successfully",
-                    "data": comparison_data,
-                    "visualizations": {
-                        "score_comparison": "/visualizations/score_comparison.html",
-                        "agreement_comparison": "/visualizations/agreement_comparison.html"
-                    }
-                })
-            except FileNotFoundError:
-                logger.warning("Analysis comparison completed but report file not found")
-                return jsonify({
-                    "status": "success",
-                    "message": "Analysis comparison completed but report file not found",
-                    "output": result.stdout
-                })
-        else:
-            logger.error(f"Analysis comparison failed: {result.stderr}")
-            return jsonify({
-                "status": "error",
-                "message": "Analysis comparison failed",
-                "error": result.stderr,
-                "output": result.stdout
-            }), 500
-            
-    except Exception as e:
-        logger.exception("Failed to run analysis comparison")
-        return jsonify({
-            "status": "error",
-            "message": f"Failed to run analysis comparison: {str(e)}"
-        }), 500
+@app.route('/test')
+def test():
+    """Test endpoint for quick verification"""
+    return jsonify({
+        "status": "success",
+        "message": "API is working correctly",
+        "test_data": {
+            "repository": "demo-repository",
+            "analysis_tools": ["mistral-ai", "openai", "code-quality", "security"],
+            "features": ["interactive-dashboard", "rest-api", "automated-analysis", "rag-system", "comparative-analysis"]
+        },
+        "api_version": "1.1.0"
+    })
+
+@app.route('/metrics')
+def metrics():
+    """Metrics endpoint for monitoring"""
+    # This would normally integrate with a proper monitoring system
+    # For now, we'll just return some basic stats
+    stats = {
+        "uptime_seconds": 3600,  # Placeholder
+        "requests": {
+            "total": 1000,  # Placeholder
+            "success": 950,  # Placeholder
+            "error": 50,  # Placeholder
+        },
+        "endpoints": {
+            "/analyze": 200,  # Placeholder
+            "/openai-analyze": 150,  # Placeholder
+            "/compare-analysis": 100,  # Placeholder
+            "/rag-query": 300,  # Placeholder
+            "/results": 250,  # Placeholder
+        },
+        "rate_limits": {
+            "current": limiter.current_limit,
+            "remaining": "N/A"  # Would require integration with limiter storage
+        }
+    }
+    
+    return jsonify({
+        "status": "success",
+        "metrics": stats
+    })
+
+if __name__ == '__main__':
+    print("Starting AI Repository Analysis API Server...")
+    print("Available endpoints:")
+    print("  GET  /         - API information")
+    print("  GET  /health   - Health check")
+    print("  POST /analyze  - Run Mistral analysis")
+    print("  POST /openai-analyze - Run OpenAI analysis")
+    print("  POST /compare-analysis - Compare analyses")
+    print("  POST /rag-query - Query the RAG system")
+    print("  GET  /results  - Get results")
+    print("  GET  /dashboard- Dashboard info")
+    print("  GET  /test     - Test endpoint")
+    print("\nServer starting on http://0.0.0.0:3000")
+    
+    app.run(host='0.0.0.0', port=3000, debug=False)
