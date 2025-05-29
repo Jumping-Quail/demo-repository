@@ -44,7 +44,7 @@ def test_openai_api_key():
         print("\n🧪 Testing API with a simple completion...")
         
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4.1",
             messages=[
                 {"role": "system", "content": "You are a helpful assistant."},
                 {"role": "user", "content": "Say 'Hello, OpenAI API is working!' in exactly those words."}
