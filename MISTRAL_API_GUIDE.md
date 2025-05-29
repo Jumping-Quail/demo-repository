@@ -10,7 +10,7 @@ This guide explains how to use the Mistral AI integration in this repository for
 python api_server.py
 ```
 
-The server will start on `http://localhost:3001` (or 3000 if available).
+The server will start on `http://localhost:3000` (or 3000 if available).
 
 ### 2. Test the Integration
 

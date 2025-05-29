@@ -232,6 +232,6 @@ if __name__ == '__main__':
     print("  GET  /results  - Get results")
     print("  GET  /dashboard- Dashboard info")
     print("  GET  /test     - Test endpoint")
-    print("\nServer starting on http://0.0.0.0:3001")
+    print("\nServer starting on http://0.0.0.0:3000")
     
-    app.run(host='0.0.0.0', port=3001, debug=False)
+    app.run(host='0.0.0.0', port=3000, debug=False)

@@ -8,7 +8,7 @@ import requests
 import json
 import time
 
-API_BASE_URL = "http://localhost:3001"
+API_BASE_URL = "http://localhost:3000"
 
 def test_endpoint(endpoint, method="GET", description=""):
     """Test a single API endpoint"""

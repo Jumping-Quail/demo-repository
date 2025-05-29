@@ -9,7 +9,7 @@ import json
 import os
 import sys
 
-API_BASE_URL = "http://localhost:3001"
+API_BASE_URL = "http://localhost:3000"
 
 def test_with_real_api_key():
     """Test Mistral integration with real API key"""

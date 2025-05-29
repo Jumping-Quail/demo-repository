@@ -4,7 +4,7 @@
 Successfully implemented and tested a comprehensive REST API for Mistral AI repository analysis. The API provides endpoints for analyzing repositories, retrieving results, and accessing health information.
 
 ## 🌐 API Server Details
-- **Server URL**: `http://localhost:3001`
+- **Server URL**: `http://localhost:3000`
 - **Framework**: Flask with CORS support
 - **Status**: ✅ Running and fully functional
 - **Host**: `0.0.0.0` (accessible from any interface)
