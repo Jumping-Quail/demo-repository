@@ -15,18 +15,22 @@ from plotly.subplots import make_subplots
 
 class AnalysisComparator:
     def __init__(self, mistral_report_path: str = "analysis_report.json", 
-                 openai_report_path: str = "openai_analysis_report.json"):
+                 openai_report_path: str = "openai_analysis_report.json",
+                 openhands_report_path: str = "openhands_analysis_report.json"):
         """
         Initialize the Analysis Comparator.
         
         Args:
             mistral_report_path: Path to the Mistral analysis report JSON file.
             openai_report_path: Path to the OpenAI analysis report JSON file.
+            openhands_report_path: Path to the OpenHands analysis report JSON file.
         """
         self.mistral_report_path = mistral_report_path
         self.openai_report_path = openai_report_path
+        self.openhands_report_path = openhands_report_path
         self.mistral_data = None
         self.openai_data = None
+        self.openhands_data = None
         self.comparison_results = {}
         
     def load_reports(self):
@@ -58,137 +62,203 @@ class AnalysisComparator:
         else:
             print(f"❌ OpenAI report not found at {self.openai_report_path}")
             self.openai_data = None
+            
+        # Load OpenHands report
+        if os.path.exists(self.openhands_report_path):
+            try:
+                with open(self.openhands_report_path, 'r') as f:
+                    self.openhands_data = json.load(f)
+                print(f"✅ Loaded OpenHands report from {self.openhands_report_path}")
+            except Exception as e:
+                print(f"❌ Error loading OpenHands report: {str(e)}")
+                self.openhands_data = None
+        else:
+            print(f"❌ OpenHands report not found at {self.openhands_report_path}")
+            self.openhands_data = None
         
-        return self.mistral_data is not None and self.openai_data is not None
+        # Require at least two reports for comparison
+        return (self.mistral_data is not None and self.openai_data is not None) or \
+               (self.mistral_data is not None and self.openhands_data is not None) or \
+               (self.openai_data is not None and self.openhands_data is not None)
     
     def compare_analyses(self):
-        """Compare Mistral and OpenAI analyses"""
+        """Compare Mistral, OpenAI, and OpenHands analyses"""
         if not self.load_reports():
-            print("❌ Cannot compare analyses: one or both reports are missing.")
+            print("❌ Cannot compare analyses: at least two reports are required.")
             return False
         
         print("🔍 Comparing analyses...")
         
         # Extract the analysis sections
-        mistral_analysis = self.mistral_data.get("mistral_analysis", {})
-        openai_analysis = self.openai_data.get("openai_analysis", {})
+        mistral_analysis = self.mistral_data.get("mistral_analysis", {}) if self.mistral_data else {}
+        openai_analysis = self.openai_data.get("openai_analysis", {}) if self.openai_data else {}
+        openhands_analysis = self.openhands_data.get("openhands_analysis", {}) if self.openhands_data else {}
+        
+        # Determine which models to compare
+        models_to_compare = []
+        if mistral_analysis:
+            models_to_compare.append("mistral")
+        if openai_analysis:
+            models_to_compare.append("openai")
+        if openhands_analysis:
+            models_to_compare.append("openhands")
         
         # Compare repository type and purpose
-        self.comparison_results["repository_info"] = {
-            "mistral": {
-                "type": mistral_analysis.get("repository_type", "N/A"),
-                "purpose": mistral_analysis.get("primary_purpose", "N/A")
-            },
-            "openai": {
-                "type": openai_analysis.get("repository_type", "N/A"),
-                "purpose": openai_analysis.get("primary_purpose", "N/A")
-            },
-            "agreement": self._calculate_text_similarity(
-                mistral_analysis.get("repository_type", "") + " " + mistral_analysis.get("primary_purpose", ""),
-                openai_analysis.get("repository_type", "") + " " + openai_analysis.get("primary_purpose", "")
-            )
-        }
+        self.comparison_results["repository_info"] = {}
+        for model in models_to_compare:
+            analysis = locals()[f"{model}_analysis"]
+            self.comparison_results["repository_info"][model] = {
+                "type": analysis.get("repository_type", "N/A"),
+                "purpose": analysis.get("primary_purpose", "N/A")
+            }
+        
+        # Calculate agreement between each pair of models
+        for i, model1 in enumerate(models_to_compare):
+            for model2 in models_to_compare[i+1:]:
+                analysis1 = locals()[f"{model1}_analysis"]
+                analysis2 = locals()[f"{model2}_analysis"]
+                
+                agreement_key = f"{model1}_{model2}_agreement"
+                self.comparison_results["repository_info"][agreement_key] = self._calculate_text_similarity(
+                    analysis1.get("repository_type", "") + " " + analysis1.get("primary_purpose", ""),
+                    analysis2.get("repository_type", "") + " " + analysis2.get("primary_purpose", "")
+                )
         
         # Compare technology stack
-        mistral_tech = set(mistral_analysis.get("technology_stack", []))
-        openai_tech = set(openai_analysis.get("technology_stack", []))
+        self.comparison_results["technology_stack"] = {}
+        for model in models_to_compare:
+            analysis = locals()[f"{model}_analysis"]
+            self.comparison_results["technology_stack"][model] = list(set(analysis.get("technology_stack", [])))
         
-        self.comparison_results["technology_stack"] = {
-            "mistral": list(mistral_tech),
-            "openai": list(openai_tech),
-            "common": list(mistral_tech.intersection(openai_tech)),
-            "mistral_only": list(mistral_tech - openai_tech),
-            "openai_only": list(openai_tech - mistral_tech),
-            "agreement_percentage": self._calculate_set_similarity(mistral_tech, openai_tech)
-        }
+        # Calculate common technologies across all models
+        common_tech = set()
+        if models_to_compare:
+            common_tech = set(self.comparison_results["technology_stack"][models_to_compare[0]])
+            for model in models_to_compare[1:]:
+                common_tech = common_tech.intersection(set(self.comparison_results["technology_stack"][model]))
+        
+        self.comparison_results["technology_stack"]["common"] = list(common_tech)
+        
+        # Calculate unique technologies for each model
+        for model in models_to_compare:
+            model_tech = set(self.comparison_results["technology_stack"][model])
+            other_models_tech = set()
+            for other_model in models_to_compare:
+                if other_model != model:
+                    other_models_tech = other_models_tech.union(set(self.comparison_results["technology_stack"][other_model]))
+            
+            self.comparison_results["technology_stack"][f"{model}_unique"] = list(model_tech - other_models_tech)
+        
+        # Calculate agreement percentages for technology stack
+        for i, model1 in enumerate(models_to_compare):
+            for model2 in models_to_compare[i+1:]:
+                tech1 = set(self.comparison_results["technology_stack"][model1])
+                tech2 = set(self.comparison_results["technology_stack"][model2])
+                
+                agreement_key = f"{model1}_{model2}_agreement"
+                self.comparison_results["technology_stack"][agreement_key] = self._calculate_set_similarity(tech1, tech2)
         
         # Compare code quality assessment
-        mistral_quality = mistral_analysis.get("code_quality_assessment", {})
-        openai_quality = openai_analysis.get("code_quality_assessment", {})
+        self.comparison_results["code_quality"] = {}
+        for model in models_to_compare:
+            analysis = locals()[f"{model}_analysis"]
+            self.comparison_results["code_quality"][model] = analysis.get("code_quality_assessment", {})
         
-        self.comparison_results["code_quality"] = {
-            "mistral": mistral_quality,
-            "openai": openai_quality,
-            "agreement": {}
-        }
-        
-        # Calculate agreement for each quality aspect
-        for key in set(mistral_quality.keys()).union(set(openai_quality.keys())):
-            mistral_value = mistral_quality.get(key, "N/A")
-            openai_value = openai_quality.get(key, "N/A")
+        # Calculate agreement for each quality aspect between each pair of models
+        self.comparison_results["code_quality"]["agreement"] = {}
+        for aspect in ["structure", "documentation", "testing", "ci_cd"]:
+            self.comparison_results["code_quality"]["agreement"][aspect] = {}
             
-            if mistral_value != "N/A" and openai_value != "N/A":
-                self.comparison_results["code_quality"]["agreement"][key] = self._calculate_text_similarity(
-                    mistral_value, openai_value
-                )
-            else:
-                self.comparison_results["code_quality"]["agreement"][key] = 0
+            for i, model1 in enumerate(models_to_compare):
+                for model2 in models_to_compare[i+1:]:
+                    quality1 = self.comparison_results["code_quality"][model1].get(aspect, "N/A")
+                    quality2 = self.comparison_results["code_quality"][model2].get(aspect, "N/A")
+                    
+                    if quality1 != "N/A" and quality2 != "N/A":
+                        agreement_key = f"{model1}_{model2}"
+                        self.comparison_results["code_quality"]["agreement"][aspect][agreement_key] = self._calculate_text_similarity(
+                            quality1, quality2
+                        )
         
         # Compare security analysis
-        mistral_security = mistral_analysis.get("security_analysis", {})
-        openai_security = openai_analysis.get("security_analysis", {})
+        self.comparison_results["security_analysis"] = {}
+        for model in models_to_compare:
+            analysis = locals()[f"{model}_analysis"]
+            self.comparison_results["security_analysis"][model] = analysis.get("security_analysis", {})
         
-        self.comparison_results["security_analysis"] = {
-            "mistral": mistral_security,
-            "openai": openai_security,
-            "agreement": {}
-        }
-        
-        # Calculate agreement for each security aspect
-        for key in set(mistral_security.keys()).union(set(openai_security.keys())):
-            mistral_value = mistral_security.get(key, "N/A")
-            openai_value = openai_security.get(key, "N/A")
+        # Calculate agreement for each security aspect between each pair of models
+        self.comparison_results["security_analysis"]["agreement"] = {}
+        for aspect in ["dependencies", "workflows", "secrets_management"]:
+            self.comparison_results["security_analysis"]["agreement"][aspect] = {}
             
-            if mistral_value != "N/A" and openai_value != "N/A":
-                self.comparison_results["security_analysis"]["agreement"][key] = self._calculate_text_similarity(
-                    mistral_value, openai_value
-                )
-            else:
-                self.comparison_results["security_analysis"]["agreement"][key] = 0
+            for i, model1 in enumerate(models_to_compare):
+                for model2 in models_to_compare[i+1:]:
+                    security1 = self.comparison_results["security_analysis"][model1].get(aspect, "N/A")
+                    security2 = self.comparison_results["security_analysis"][model2].get(aspect, "N/A")
+                    
+                    if security1 != "N/A" and security2 != "N/A":
+                        agreement_key = f"{model1}_{model2}"
+                        self.comparison_results["security_analysis"]["agreement"][aspect][agreement_key] = self._calculate_text_similarity(
+                            security1, security2
+                        )
         
         # Compare recommendations
-        mistral_recs = mistral_analysis.get("recommendations", [])
-        openai_recs = openai_analysis.get("recommendations", [])
+        self.comparison_results["recommendations"] = {}
+        for model in models_to_compare:
+            analysis = locals()[f"{model}_analysis"]
+            self.comparison_results["recommendations"][model] = analysis.get("recommendations", [])
         
-        self.comparison_results["recommendations"] = {
-            "mistral": mistral_recs,
-            "openai": openai_recs,
-            "common_themes": self._identify_common_themes(mistral_recs, openai_recs),
-            "agreement_percentage": self._calculate_recommendation_similarity(mistral_recs, openai_recs)
-        }
+        # Identify common themes across all models
+        all_recs = []
+        for model in models_to_compare:
+            all_recs.extend(self.comparison_results["recommendations"][model])
+        
+        self.comparison_results["recommendations"]["common_themes"] = self._identify_common_themes(all_recs, [])
+        
+        # Calculate recommendation similarity between each pair of models
+        for i, model1 in enumerate(models_to_compare):
+            for model2 in models_to_compare[i+1:]:
+                recs1 = self.comparison_results["recommendations"][model1]
+                recs2 = self.comparison_results["recommendations"][model2]
+                
+                agreement_key = f"{model1}_{model2}_agreement"
+                self.comparison_results["recommendations"][agreement_key] = self._calculate_recommendation_similarity(recs1, recs2)
         
         # Compare scores
-        mistral_scores = {
-            "complexity": self._extract_score(mistral_analysis.get("complexity_score", "0")),
-            "maintainability": self._extract_score(mistral_analysis.get("maintainability_score", "0")),
-            "scalability": self._extract_score(mistral_analysis.get("scalability_potential", "0"))
-        }
+        self.comparison_results["scores"] = {}
+        for model in models_to_compare:
+            analysis = locals()[f"{model}_analysis"]
+            self.comparison_results["scores"][model] = {
+                "complexity": self._extract_score(analysis.get("complexity_score", "0")),
+                "maintainability": self._extract_score(analysis.get("maintainability_score", "0")),
+                "scalability": self._extract_score(analysis.get("scalability_potential", "0"))
+            }
         
-        openai_scores = {
-            "complexity": self._extract_score(openai_analysis.get("complexity_score", "0")),
-            "maintainability": self._extract_score(openai_analysis.get("maintainability_score", "0")),
-            "scalability": self._extract_score(openai_analysis.get("scalability_potential", "0"))
-        }
-        
-        self.comparison_results["scores"] = {
-            "mistral": mistral_scores,
-            "openai": openai_scores,
-            "difference": {
-                key: abs(mistral_scores[key] - openai_scores[key])
-                for key in mistral_scores.keys()
-            },
-            "average_difference": sum(
-                abs(mistral_scores[key] - openai_scores[key])
-                for key in mistral_scores.keys()
-            ) / len(mistral_scores) if mistral_scores else 0
-        }
+        # Calculate score differences between each pair of models
+        for i, model1 in enumerate(models_to_compare):
+            for model2 in models_to_compare[i+1:]:
+                scores1 = self.comparison_results["scores"][model1]
+                scores2 = self.comparison_results["scores"][model2]
+                
+                difference_key = f"{model1}_{model2}_difference"
+                self.comparison_results["scores"][difference_key] = {
+                    key: abs(scores1[key] - scores2[key])
+                    for key in scores1.keys()
+                }
+                
+                self.comparison_results["scores"][f"{model1}_{model2}_average_difference"] = sum(
+                    abs(scores1[key] - scores2[key])
+                    for key in scores1.keys()
+                ) / len(scores1) if scores1 else 0
         
         # Add metadata
         self.comparison_results["metadata"] = {
             "comparison_timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-            "mistral_report_path": self.mistral_report_path,
-            "openai_report_path": self.openai_report_path,
-            "overall_agreement_percentage": self._calculate_overall_agreement()
+            "models_compared": models_to_compare,
+            "mistral_report_path": self.mistral_report_path if self.mistral_data else None,
+            "openai_report_path": self.openai_report_path if self.openai_data else None,
+            "openhands_report_path": self.openhands_report_path if self.openhands_data else None,
+            "overall_agreement_percentage": self._calculate_overall_agreement(models_to_compare)
         }
         
         return True
@@ -301,8 +371,11 @@ class AnalysisComparator:
         similarities.sort(reverse=True)
         return sum(similarities[:top_n]) / top_n * 100
     
-    def _calculate_overall_agreement(self):
+    def _calculate_overall_agreement(self, models_to_compare):
         """Calculate overall agreement percentage between analyses"""
+        if len(models_to_compare) < 2:
+            return 0
+            
         # Weights for different components
         weights = {
             "repository_info": 0.1,
@@ -313,19 +386,62 @@ class AnalysisComparator:
             "scores": 0.1
         }
         
-        agreement_scores = {
-            "repository_info": self.comparison_results.get("repository_info", {}).get("agreement", 0) * 100,
-            "technology_stack": self.comparison_results.get("technology_stack", {}).get("agreement_percentage", 0),
-            "code_quality": sum(self.comparison_results.get("code_quality", {}).get("agreement", {}).values()) / 
-                           max(len(self.comparison_results.get("code_quality", {}).get("agreement", {})), 1) * 100,
-            "security_analysis": sum(self.comparison_results.get("security_analysis", {}).get("agreement", {}).values()) / 
-                                max(len(self.comparison_results.get("security_analysis", {}).get("agreement", {})), 1) * 100,
-            "recommendations": self.comparison_results.get("recommendations", {}).get("agreement_percentage", 0),
-            "scores": (1 - min(self.comparison_results.get("scores", {}).get("average_difference", 10) / 10, 1)) * 100
-        }
+        # Calculate pairwise agreements
+        pairwise_agreements = {}
+        for i, model1 in enumerate(models_to_compare):
+            for model2 in models_to_compare[i+1:]:
+                pair_key = f"{model1}_{model2}"
+                
+                # Repository info agreement
+                repo_info_agreement = self.comparison_results.get("repository_info", {}).get(f"{pair_key}_agreement", 0) * 100
+                
+                # Technology stack agreement
+                tech_stack_agreement = self.comparison_results.get("technology_stack", {}).get(f"{pair_key}_agreement", 0)
+                
+                # Code quality agreement
+                code_quality_agreements = []
+                for aspect in ["structure", "documentation", "testing", "ci_cd"]:
+                    agreement = self.comparison_results.get("code_quality", {}).get("agreement", {}).get(aspect, {}).get(pair_key, 0)
+                    code_quality_agreements.append(agreement)
+                code_quality_agreement = sum(code_quality_agreements) / len(code_quality_agreements) * 100 if code_quality_agreements else 0
+                
+                # Security analysis agreement
+                security_agreements = []
+                for aspect in ["dependencies", "workflows", "secrets_management"]:
+                    agreement = self.comparison_results.get("security_analysis", {}).get("agreement", {}).get(aspect, {}).get(pair_key, 0)
+                    security_agreements.append(agreement)
+                security_agreement = sum(security_agreements) / len(security_agreements) * 100 if security_agreements else 0
+                
+                # Recommendations agreement
+                recommendations_agreement = self.comparison_results.get("recommendations", {}).get(f"{pair_key}_agreement", 0)
+                
+                # Scores agreement
+                avg_diff = self.comparison_results.get("scores", {}).get(f"{pair_key}_average_difference", 10)
+                scores_agreement = (1 - min(avg_diff / 10, 1)) * 100
+                
+                # Calculate weighted agreement
+                pairwise_agreements[pair_key] = {
+                    "repository_info": repo_info_agreement,
+                    "technology_stack": tech_stack_agreement,
+                    "code_quality": code_quality_agreement,
+                    "security_analysis": security_agreement,
+                    "recommendations": recommendations_agreement,
+                    "scores": scores_agreement,
+                    "weighted_total": sum([
+                        repo_info_agreement * weights["repository_info"],
+                        tech_stack_agreement * weights["technology_stack"],
+                        code_quality_agreement * weights["code_quality"],
+                        security_agreement * weights["security_analysis"],
+                        recommendations_agreement * weights["recommendations"],
+                        scores_agreement * weights["scores"]
+                    ])
+                }
         
-        weighted_sum = sum(agreement_scores[key] * weights[key] for key in weights)
-        return weighted_sum
+        # Calculate average of all pairwise agreements
+        if not pairwise_agreements:
+            return 0
+            
+        return sum(agreement["weighted_total"] for agreement in pairwise_agreements.values()) / len(pairwise_agreements)
     
     def generate_comparison_report(self):
         """Generate a comprehensive comparison report"""

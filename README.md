@@ -1,6 +1,6 @@
 # Demo Repository - AI-Powered Code Analysis
 
-This repository has been enhanced with comprehensive AI-powered analysis using both Mistral AI and OpenAI, with comparative analysis capabilities.
+This repository has been enhanced with comprehensive AI-powered analysis using Mistral AI, OpenAI, and OpenHands, with comparative analysis capabilities.
 
 ## 🤖 AI Analysis Overview
 
@@ -12,7 +12,7 @@ This repository has been analyzed using advanced AI techniques to provide insigh
 - Documentation quality
 - Actionable recommendations
 
-The analysis is performed using both Mistral AI and OpenAI, allowing for comparative analysis and higher confidence in the results.
+The analysis is performed using Mistral AI, OpenAI, and OpenHands, allowing for comparative analysis and higher confidence in the results.
 
 ## 📊 Analysis Results
 
@@ -106,6 +106,7 @@ This repository now includes comprehensive analysis tools:
 - pip (Python package manager)
 - OpenAI API key (for OpenAI analysis)
 - Mistral API key (for Mistral analysis)
+- OpenHands API key (for OpenHands analysis)
 
 ### Installation
 ```bash
@@ -133,23 +134,28 @@ cp .env.example .env
    python analyze_openai.py
    ```
 
-3. **Comparative Analysis:**
+3. **OpenHands Analysis:**
+   ```bash
+   python analyze_openhands.py
+   ```
+
+4. **Comparative Analysis:**
    ```bash
    python compare_analysis.py
    ```
 
-4. **Initialize RAG System:**
+5. **Initialize RAG System:**
    ```bash
    python initialize_rag.py
    ```
 
-5. **Start API Server:**
+6. **Start API Server:**
    ```bash
    python api_server.py
    ```
    Then access the API at http://localhost:3000
 
-6. **View Interactive Dashboard:**
+7. **View Interactive Dashboard:**
    Open `analysis_dashboard.html` in your browser
 
 ## 📊 Analysis Reports
@@ -158,7 +164,8 @@ The analysis generates several output files:
 
 - `analysis_report.json` - Mistral AI analysis results
 - `openai_analysis_report.json` - OpenAI analysis results
-- `comparison_report.json` - Comparative analysis between Mistral and OpenAI
+- `openhands_analysis_report.json` - OpenHands analysis results
+- `comparison_report.json` - Comparative analysis between all models
 - `visualizations/` - Interactive visualizations of the comparison
 
 ## 🔍 RAG System
@@ -194,6 +201,7 @@ To use the AI analysis features, add your API keys to the `.env` file:
 # In .env
 MISTRAL_API_KEY=your-mistral-api-key
 OPENAI_API_KEY=your-openai-api-key
+OPENHANDS_API_KEY=your-openhands-api-key
 ```
 
 ### Extending the Analysis
